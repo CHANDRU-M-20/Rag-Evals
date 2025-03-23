@@ -26,17 +26,6 @@ st.set_page_config(
 )
 st.title("File Manager")
 
-def move_to_delete_folder(base_folder, base_folder_delete,selected_folder, files_to_delete):
-    
-    delete_folder = Path(base_folder_delete) / selected_folder 
-    delete_folder.mkdir(parents=True, exist_ok=True)  # Ensure the delete folder exists
-
-    for file in files_to_delete:
-        src_path = Path(base_folder) / selected_folder / file
-        dest_path =delete_folder / file
-
-        if src_path.exists():
-            shutil.move(src_path, dest_path)
 
 
 # Session state initialization
@@ -155,7 +144,17 @@ with functionality[0]:
 
 
 
+def move_to_delete_folder(base_folder, base_folder_delete,selected_folder, files_to_delete):
+    
+    delete_folder = Path(base_folder_delete) / selected_folder 
+    delete_folder.mkdir(parents=True, exist_ok=True)  # Ensure the delete folder exists
 
+    for file in files_to_delete:
+        src_path = Path(base_folder) / selected_folder / file
+        dest_path =delete_folder / file
+
+        if src_path.exists():
+            shutil.move(src_path, dest_path)
             
 with functionality[1]:
     st.session_state.selected_folder_DELETE = st.selectbox("Select a folder", folders, key="delete_folder")
@@ -256,20 +255,21 @@ with functionality[2]:
             # Create a unique key for this sample that includes some identifier from the sample
             # This helps ensure we're tracking the correct sample even if order changes
             sample_id = str(idx)  # Default to index
+            if isinstance(sample, dict) and 'id' in sample:
+                sample_id = f"{sample['id']}_{idx}"  # Use ID if available
+            elif isinstance(sample, dict) and 'name' in sample:
+                sample_id = f"{sample['name']}_{idx}"  # Use name if available
+                
             sample_key = f"json_edit_{sample_id}"
             delete_key = f"delete_confirm_{sample_id}"
-            
-            st.write(f"📝 Updating Sample {idx} with ID: {sample_key}")
             
             # Initialize this sample's edited value if not already set
             if sample_key not in st.session_state.edited_json_values:
                 st.session_state.edited_json_values[sample_key] = json.dumps(sample, indent=4)
-                st.write(st.session_state.edited_json_values[sample_key])
             
             # Initialize delete confirmation state for this sample
             if delete_key not in st.session_state.delete_confirmation:
                 st.session_state.delete_confirmation[delete_key] = False
-                st.write(st.session_state.delete_confirmation)
             
             with st.expander(f"Updating Sample {idx}"):
                 # Display the original JSON sample
